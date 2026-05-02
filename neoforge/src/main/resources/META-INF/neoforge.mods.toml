@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="CC0-1.0"
+issueTrackerURL="https://github.com/gulab9762/Librarian-filter/issues"
+
+[[mods]]
+modId="librarian_filter"
+version="${version}"
+displayName="Easy librarian trade mod"
+displayURL="https://modrinth.com/mod/easylibrariantrade"
+logoFile="elt_icon.png"
+authors="IGxxD!"
+description='''
+Mod to get desired enchantment book trade from librarian villager
+'''
+
+[[dependencies.librarian_filter]]
+    modId="neoforge"
+    mandatory=true
+    versionRange="[26.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.librarian_filter]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[26.1,)"
+    ordering="NONE"
+    side="BOTH"
