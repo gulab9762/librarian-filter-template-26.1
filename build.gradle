@@ -6,6 +6,10 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
+base {
+	archivesName = "Easy Villager Trade Reroll - ${project.minecraft_version}"
+}
+
 repositories {
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
@@ -71,6 +75,9 @@ jar {
 	from("LICENSE") {
 		rename { "${it}_$projectName"}
 	}
+}
+tasks.withType(Jar).configureEach {
+	archiveFileName = archiveFileName.get().replace("--", "- ")
 }
 
 // configure the maven publication
