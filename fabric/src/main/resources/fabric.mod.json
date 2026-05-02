@@ -19,7 +19,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.gbdhapa.Librarianfilter"
+			"com.gbdhapa.fabric.LibrarianfilterFabric"
 		],
 		"client": [
 			"com.gbdhapa.client.LibrarianfilterClient"

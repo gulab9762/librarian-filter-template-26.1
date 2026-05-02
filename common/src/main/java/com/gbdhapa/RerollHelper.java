@@ -1,7 +1,6 @@
 package com.gbdhapa;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import com.gbdhapa.config.TradeConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -11,9 +10,9 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -40,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import com.gbdhapa.config.TradeConfig;
 
 public class RerollHelper {
     public static final String MOD_ID = "librarian-filter";
@@ -52,44 +50,33 @@ public class RerollHelper {
     private static final int MAX_REROLL_COUNT = 10000;
     private static final int durationTicks = 5;
 
-
-
-    public RerollHelper() {
-        LOGGER.info("Villager trade reroll initialized for 26.1!");
-        registerEvent();
+    public static void performReroll(Player player, Level world, BlockPos clickedPos) {
+        if (!TradeConfig.INSTANCE.enableReroll) {
+            return;
+        }
+        UUID playerUUID = player.getUUID();
+        long currentTime = System.currentTimeMillis();
+        if (isRerollCooldown(playerUUID, clickedPos, currentTime)) {
+            return;
+        }
+        Block blockClicked = world.getBlockState(clickedPos).getBlock();
+        List<String> signTexts = getSignTexts(world, blockClicked, clickedPos);
+        if (signTexts == null || signTexts.isEmpty()) {
+            return;
+        }
+        List<TradeFilter> filters = getEnchFilters(signTexts);
+        if (!filters.isEmpty() && world instanceof ServerLevel) {
+            Villager villager = getVillagerForWorkstation(player, (ServerLevel) world, clickedPos);
+            if (villager != null) {
+                FilterResult filterResult = filterTrade(villager, filters);
+                villager.refreshBrain((ServerLevel) world);
+                spawnParticles((ServerLevel) world, filterResult, villager, clickedPos);
+                cooldownMap.put(playerUUID, Map.of(clickedPos, currentTime));
+            }
+        }
     }
 
-    private void registerEvent() {
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (!TradeConfig.INSTANCE.enableReroll) {
-                return InteractionResult.PASS;
-            }
-            BlockPos clickedPos = hitResult.getBlockPos();
-            UUID playerUUID = player.getUUID();
-            long currentTime = System.currentTimeMillis();
-            if (isRerollCooldown(playerUUID, clickedPos, currentTime)) {
-                return InteractionResult.PASS;
-            }
-            Block blockClicked = world.getBlockState(clickedPos).getBlock();
-            List<String> signTexts = getSignTexts(world, blockClicked, clickedPos);
-            if (signTexts == null || signTexts.isEmpty()) {
-                return InteractionResult.PASS;
-            }
-            List<TradeFilter> filters = getEnchFilters(signTexts);
-            if (!filters.isEmpty() && world instanceof ServerLevel) {
-                Villager villager = getVillagerForWorkstation(player, (ServerLevel) world, clickedPos);
-                if (villager != null) {
-                    FilterResult filterResult = filterTrade(villager, filters);
-                    villager.refreshBrain((ServerLevel) world);
-                    spawnParticles((ServerLevel) world, filterResult, villager, clickedPos);
-                    cooldownMap.put(playerUUID, Map.of(clickedPos, currentTime));
-                }
-            }
-            return InteractionResult.PASS;
-        });
-    }
-
-    private Boolean isRerollCooldown(UUID playerUUID, BlockPos clickedPos, long currentTime) {
+    private static Boolean isRerollCooldown(UUID playerUUID, BlockPos clickedPos, long currentTime) {
         if (cooldownMap.containsKey(playerUUID)) {
             Long lastClickTime = cooldownMap.get(playerUUID).get(clickedPos);
             if (lastClickTime != null) {
@@ -102,7 +89,7 @@ public class RerollHelper {
         return false;
     }
 
-    private List<TradeFilter> getEnchFilters(List<String> signTexts) {
+    private static List<TradeFilter> getEnchFilters(List<String> signTexts) {
         List<TradeFilter> filters = new ArrayList<>();
         if (signTexts != null) {
             for (String line : signTexts) {
@@ -129,7 +116,7 @@ public class RerollHelper {
         return filters;
     }
 
-    private List<String> getSignTexts(Level world, Block blockClicked, BlockPos clickedPos) {
+    private static List<String> getSignTexts(Level world, Block blockClicked, BlockPos clickedPos) {
         if (blockClicked == Blocks.LECTERN) {
             Direction facingDirection = world.getBlockState(clickedPos).getValue(LecternBlock.FACING);
             BlockPos signPos = clickedPos.relative(facingDirection);
@@ -150,7 +137,7 @@ public class RerollHelper {
         return new ArrayList<>();
     }
 
-    private Villager getVillagerForWorkstation(Player player, ServerLevel world, BlockPos clickedPos) {
+    private static Villager getVillagerForWorkstation(Player player, ServerLevel world, BlockPos clickedPos) {
         AABB box = player.getBoundingBox().inflate(VILLAGER_SEARCH_RADIUS);
 
         List<Villager> nearbyVillagers = world.getEntitiesOfClass(Villager.class, box, v -> true);
@@ -186,7 +173,7 @@ public class RerollHelper {
         return null;
     }
 
-    private FilterResult filterTrade(Villager villager, List<TradeFilter> filters) {
+    private static FilterResult filterTrade(Villager villager, List<TradeFilter> filters) {
         if (villager != null) {
             RegistryAccess access = villager.level().registryAccess();
             int recycleCount = 0;
@@ -250,7 +237,7 @@ public class RerollHelper {
         }
     }
 
-    private FilterResult filterEnchantmentBook(List<TradeFilter> filters, MerchantOffer trade) {
+    private static FilterResult filterEnchantmentBook(List<TradeFilter> filters, MerchantOffer trade) {
         ItemEnchantments enchantments = trade.getResult().getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
         for (var entry : enchantments.entrySet()) {
             Holder<Enchantment> enchHolder = entry.getKey();
@@ -312,9 +299,9 @@ public class RerollHelper {
 
     public record TradeFilter(String filterName, int enchLevel, int price) {}
 
-    enum FilterResult { SUCCESS, FAILED }
+    public enum FilterResult { SUCCESS, FAILED }
 
-    private void spawnParticles(ServerLevel world, FilterResult filterResult, Villager villager, BlockPos clickedPos) {
+    private static void spawnParticles(ServerLevel world, FilterResult filterResult, Villager villager, BlockPos clickedPos) {
         if (filterResult == FilterResult.SUCCESS) {
             world.playSound(null, villager,
                     SoundEvents.VILLAGER_YES,

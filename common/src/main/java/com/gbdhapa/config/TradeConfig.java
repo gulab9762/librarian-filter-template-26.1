@@ -2,17 +2,16 @@ package com.gbdhapa.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 public class TradeConfig {
    public  boolean enableEachLevelReroll = true;   // toggle whole feature
    public  boolean enableReroll = true;   // toggle whole feature
-   private static final Path FILE = FabricLoader.getInstance()
-           .getConfigDir()
-           .resolve("trade_config.json");
+   private static Path FILE;
+
+   public static void setConfigFile(Path path) {
+       FILE = path;
+   }
 
    public static TradeConfig INSTANCE = new TradeConfig();
 
