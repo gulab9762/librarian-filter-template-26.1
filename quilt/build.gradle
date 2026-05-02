@@ -7,10 +7,18 @@ version = project.mod_version
 group = project.maven_group
 
 base {
-	archivesName = "Easy Villager Trade Reroll - Fabric - ${project.minecraft_version}"
+	archivesName = "Easy Villager Trade Reroll - Quilt - ${project.minecraft_version}"
 }
 
 repositories {
+	maven {
+		name = 'Quilt'
+		url = 'https://maven.quiltmc.org/repository/release/'
+	}
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
 }
 
 loom {
@@ -26,19 +34,22 @@ loom {
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	
+
 	implementation project(":common")
-	include project(":common")
-	
+	clientImplementation project(":common")
+
+	// Direct compile deps (not using modImplementation to avoid Loom ordering issues)
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	clientImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	clientImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
 processResources {
 	def version = project.version
 	inputs.property "version", version
 
-	filesMatching("fabric.mod.json") {
+	filesMatching(["quilt.mod.json", "fabric.mod.json"]) {
 		expand "version": version
 	}
 }
@@ -51,7 +62,7 @@ java {
 	withSourcesJar()
 	sourceCompatibility = JavaVersion.VERSION_25
 	targetCompatibility = JavaVersion.VERSION_25
-	
+
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(25)
 	}
@@ -61,9 +72,13 @@ jar {
 	def projectName = project.name
 	inputs.property "projectName", projectName
 
+	from(project(":common").sourceSets.main.output)
+
 	from("LICENSE") {
-		rename { "${it}_$projectName"}
+		rename { "${it}_$projectName" }
 	}
+
+	exclude "fabric.mod.json"
 }
 
 tasks.withType(Jar).configureEach {
