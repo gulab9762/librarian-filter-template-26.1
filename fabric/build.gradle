@@ -17,7 +17,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"librarian-filter" {
+		"quick-craft" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

@@ -3,7 +3,7 @@
 	"package": "com.gbdhapa.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		
+		"KeyboardMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

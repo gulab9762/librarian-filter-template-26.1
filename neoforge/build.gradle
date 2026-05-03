@@ -26,7 +26,7 @@ neoForge {
     }
 
     mods {
-        "librarian_filter" {
+        "quick_craft" {
             sourceSet sourceSets.main
             sourceSet project(":common").sourceSets.main
         }

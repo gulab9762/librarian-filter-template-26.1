@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "librarian-filter",
+  "id": "quick-craft",
   "version": "${version}",
-  "name": "Easy librarian trade mod",
+  "name": "Quick Craft",
   "description": "Mod to get desired enchantment book trade from librarian villager",
   "authors": [
     "IGxxD!"
   ],
   "contact": {
-    "homepage": "https://modrinth.com/mod/easylibrariantrade",
-    "sources": "https://github.com/gulab9762/Librarian-filter",
-    "issues": "https://github.com/gulab9762/Librarian-filter/issues"
+    "homepage": "https://modrinth.com/mod/quickcraft",
+    "sources": "https://github.com/gulab9762/quick-craft",
+    "issues": "https://github.com/gulab9762/quick-craft/issues"
   },
   "license": "CC0-1.0",
-  "icon": "assets/librarian-filter/elt_icon.png",
+  "icon": "assets/quick-craft/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.gbdhapa.quilt.LibrarianFilterQuilt"
+      "com.gbdhapa.quilt.QuickCraftQuilt"
     ],
     "client": [
-      "com.gbdhapa.quilt.client.LibrarianFilterQuiltClient"
+      "com.gbdhapa.quilt.client.QuickCraftQuiltClient"
     ]
   },
   "depends": {
